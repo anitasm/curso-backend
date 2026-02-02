@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "title": "Pulsera de Amatista",
+    "description": "Pulsera artesanal de amatista natural.",
+    "code": "PUL-AMAT-001",
+    "price": 8500,
+    "status": true,
+    "stock": 12,
+    "category": "pulseras",
+    "thumbnails": [
+      "/img/pulsera-amatista-1.jpg"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Pulsera de Cuarzo Rosa",
+    "description": "Pulsera de cuarzo rosa natural, vinculada al amor y la armonía emocional.",
+    "code": "PUL-CUA-002",
+    "price": 7900,
+    "status": true,
+    "stock": 20,
+    "category": "pulseras",
+    "thumbnails": [
+      "/img/pulsera-cuarzo-rosa.jpg"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Pulsera de Obsidiana Negra",
+    "description": "Pulsera de obsidiana negra pulida, utilizada como piedra de protección.",
+    "code": "PUL-OBS-003",
+    "price": 9200,
+    "status": true,
+    "stock": 3,
+    "category": "pulseras",
+    "thumbnails": [
+      "/img/pulsera-obsidiana.jpg"
+    ]
+  }
+]
