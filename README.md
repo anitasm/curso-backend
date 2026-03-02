@@ -127,3 +127,4 @@ Servidor: `http://localhost:8080`
 - Si agregás/eliminás productos desde `/realtimeproducts`, la lista se actualiza en vivo.
 - Si modificás productos por HTTP en `/api/products` (POST/DELETE), también se emite actualización por websocket.
 - Al recargar `/`, se ven los cambios porque lee siempre desde `products.json`.
+
