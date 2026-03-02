@@ -1,44 +1,99 @@
-<section>
-  <h2>Productos en tiempo real</h2>
+<section class="page-section realtime-page">
+  <div class="section-heading">
+    <h2>Gestión en tiempo real</h2>
+    <p>Alta y baja de productos con actualización automática.</p>
+  </div>
 
-  <p id="errorBox" class="error-message"></p>
+  <div id="errorBox" class="alert-message hidden" role="alert"></div>
 
-  <ul id="productsList">
-    {{#if products.length}}
-      {{#each products}}
-        <li>
-          {{#if this.thumbnails.[0]}}
-            <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" class="product-img" />
-          {{/if}}
-          <strong>#{{this.id}} - {{this.title}}</strong>
-          <span> | {{this.description}} | ${{this.price}} | stock: {{this.stock}} | code: {{this.code}}</span>
-          <button type="button" class="delete-btn" data-id="{{this.id}}">Eliminar</button>
-        </li>
-      {{/each}}
-    {{else}}
-      <li>No hay productos cargados.</li>
-    {{/if}}
-  </ul>
+  <div class="realtime-layout">
+    <article class="panel-card form-panel">
+      <h3>Agregar producto</h3>
+      <form id="addProductForm" class="product-form">
+        <div class="form-grid">
+          <label>
+            Título
+            <input name="title" placeholder="Ej: Pulsera Aura" required>
+          </label>
 
-  <h3>Agregar producto</h3>
-  <form id="addProductForm">
-    <input name="title" placeholder="title" required>
-    <input name="description" placeholder="description" required>
-    <input name="code" placeholder="code" required>
-    <input name="price" type="number" step="0.01" placeholder="price" required>
-    <select name="status" required>
-      <option value="true">true</option>
-      <option value="false">false</option>
-    </select>
-    <input name="stock" type="number" placeholder="stock" required>
-    <input name="category" placeholder="category" required>
-    <input name="thumbnails" placeholder="thumbnails (img1,img2)">
+          <label>
+            Code
+            <input name="code" placeholder="Ej: AURA-001" required>
+          </label>
 
-    <label for="image">Cargar imagen del producto</label>
-    <input type="file" name="image" id="image" accept="image/png,image/jpeg,image/webp" />
+          <label class="full-width">
+            Descripción
+            <input name="description" placeholder="Descripción breve del producto" required>
+          </label>
 
-    <button type="submit">Crear</button>
-  </form>
+          <label>
+            Precio
+            <input name="price" type="number" step="0.01" min="0" placeholder="0.00" required>
+          </label>
+
+          <label>
+            Stock
+            <input name="stock" type="number" min="0" placeholder="0" required>
+          </label>
+
+          <label>
+            Categoría
+            <input name="category" placeholder="Ej: Pulseras" required>
+          </label>
+
+          <label>
+            Estado
+            <select name="status" required>
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
+            </select>
+          </label>
+
+          <label class="full-width">
+            Thumbnails (URLs separadas por coma)
+            <input name="thumbnails" placeholder="/img/imagen-uno.jpg, /img/imagen-dos.jpg">
+          </label>
+
+          <label class="full-width" for="image">
+            Cargar imagen del producto
+            <input type="file" name="image" id="image" accept="image/png,image/jpeg,image/webp" />
+          </label>
+        </div>
+
+        <button type="submit" class="primary-btn">Agregar producto</button>
+      </form>
+    </article>
+
+    <article class="panel-card">
+      <h3>Listado en tiempo real</h3>
+      <div id="productsList" class="products-grid realtime-grid">
+        {{#if products.length}}
+          {{#each products}}
+            <article class="product-card">
+              {{#if this.thumbnails.[0]}}
+                <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" class="product-image" />
+              {{else}}
+                <div class="product-image placeholder-image">Sin imagen</div>
+              {{/if}}
+              <div class="product-content">
+                <h4>{{this.title}}</h4>
+                <p class="description">{{this.description}}</p>
+                <p class="price">${{this.price}}</p>
+                <div class="meta-row">
+                  <span>Stock: {{this.stock}}</span>
+                  <span>{{this.category}}</span>
+                </div>
+                <p class="tiny-meta">Code: {{this.code}} · ID: {{this.id}}</p>
+                <button type="button" class="delete-btn" data-id="{{this.id}}">Eliminar</button>
+              </div>
+            </article>
+          {{/each}}
+        {{else}}
+          <div class="alert-message">No hay productos cargados.</div>
+        {{/if}}
+      </div>
+    </article>
+  </div>
 </section>
 
 <script src="/socket.io/socket.io.js"></script>

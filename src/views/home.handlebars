@@ -1,41 +1,33 @@
-<section>
-  <h2>Listado de productos (solo lectura)</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Imagen</th>
-        <th>Título</th>
-        <th>Descripción</th>
-        <th>Precio</th>
-        <th>Stock</th>
-        <th>Code</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#if products.length}}
-        {{#each products}}
-          <tr>
-            <td>{{this.id}}</td>
-            <td>
-              {{#if this.thumbnails.[0]}}
-                <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" class="product-img" />
-              {{else}}
-                Sin imagen
-              {{/if}}
-            </td>
-            <td>{{this.title}}</td>
-            <td>{{this.description}}</td>
-            <td>{{this.price}}</td>
-            <td>{{this.stock}}</td>
-            <td>{{this.code}}</td>
-          </tr>
-        {{/each}}
-      {{else}}
-        <tr>
-          <td colspan="7">No hay productos cargados.</td>
-        </tr>
-      {{/if}}
-    </tbody>
-  </table>
+<section class="page-section">
+  <div class="section-heading">
+    <h2>Productos destacados</h2>
+    <p>Listado general de productos disponibles.</p>
+  </div>
+
+  {{#if products.length}}
+    <div class="products-grid">
+      {{#each products}}
+        <article class="product-card">
+          {{#if this.thumbnails.[0]}}
+            <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" class="product-image" />
+          {{else}}
+            <div class="product-image placeholder-image">Sin imagen</div>
+          {{/if}}
+
+          <div class="product-content">
+            <h3>{{this.title}}</h3>
+            <p class="description">{{this.description}}</p>
+            <p class="price">${{this.price}}</p>
+            <div class="meta-row">
+              <span>Stock: {{this.stock}}</span>
+              <span>{{this.category}}</span>
+            </div>
+            <p class="tiny-meta">Code: {{this.code}} · ID: {{this.id}}</p>
+          </div>
+        </article>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="alert-message">No hay productos cargados.</div>
+  {{/if}}
 </section>
