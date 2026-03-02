@@ -4,6 +4,7 @@
     <thead>
       <tr>
         <th>ID</th>
+        <th>Imagen</th>
         <th>Título</th>
         <th>Descripción</th>
         <th>Precio</th>
@@ -16,6 +17,13 @@
         {{#each products}}
           <tr>
             <td>{{this.id}}</td>
+            <td>
+              {{#if this.thumbnails.[0]}}
+                <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" class="product-img" />
+              {{else}}
+                Sin imagen
+              {{/if}}
+            </td>
             <td>{{this.title}}</td>
             <td>{{this.description}}</td>
             <td>{{this.price}}</td>
@@ -25,7 +33,7 @@
         {{/each}}
       {{else}}
         <tr>
-          <td colspan="6">No hay productos cargados.</td>
+          <td colspan="7">No hay productos cargados.</td>
         </tr>
       {{/if}}
     </tbody>

@@ -7,6 +7,9 @@
     {{#if products.length}}
       {{#each products}}
         <li>
+          {{#if this.thumbnails.[0]}}
+            <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" class="product-img" />
+          {{/if}}
           <strong>#{{this.id}} - {{this.title}}</strong>
           <span> | {{this.description}} | ${{this.price}} | stock: {{this.stock}} | code: {{this.code}}</span>
           <button type="button" class="delete-btn" data-id="{{this.id}}">Eliminar</button>
@@ -30,6 +33,10 @@
     <input name="stock" type="number" placeholder="stock" required>
     <input name="category" placeholder="category" required>
     <input name="thumbnails" placeholder="thumbnails (img1,img2)">
+
+    <label for="image">Cargar imagen del producto</label>
+    <input type="file" name="image" id="image" accept="image/png,image/jpeg,image/webp" />
+
     <button type="submit">Crear</button>
   </form>
 </section>

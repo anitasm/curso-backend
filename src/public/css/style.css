@@ -39,6 +39,26 @@ form {
   gap: 0.5rem;
 }
 
+.product-img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+#productsList {
+  list-style: none;
+  padding-left: 0;
+}
+
+#productsList li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 .error-message {
   color: #a30000;
   min-height: 1.2rem;

@@ -24,6 +24,7 @@ const renderList = (products) => {
     .map(
       (product) => `
       <li>
+        ${product.thumbnails?.[0] ? `<img src="${product.thumbnails[0]}" alt="${product.title}" class="product-img" />` : ""}
         <strong>#${product.id} - ${product.title}</strong>
         <span> | ${product.description} | $${product.price} | stock: ${product.stock} | code: ${product.code}</span>
         <button type="button" class="delete-btn" data-id="${product.id}">Eliminar</button>
@@ -42,28 +43,28 @@ socket.on("errorMessage", (message) => {
 });
 
 if (addProductForm) {
-  addProductForm.addEventListener("submit", (event) => {
+  addProductForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const formData = new FormData(addProductForm);
-    const thumbnailsRaw = formData.get("thumbnails") || "";
 
-    const product = {
-      title: String(formData.get("title") || "").trim(),
-      description: String(formData.get("description") || "").trim(),
-      code: String(formData.get("code") || "").trim(),
-      price: Number(formData.get("price")),
-      status: String(formData.get("status")) === "true",
-      stock: Number(formData.get("stock")),
-      category: String(formData.get("category") || "").trim(),
-      thumbnails: thumbnailsRaw
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
-    };
+    try {
+      const response = await fetch("/api/products", {
+        method: "POST",
+        body: formData,
+      });
 
-    socket.emit("addProduct", product);
-    addProductForm.reset();
+      const payload = await response.json();
+
+      if (!response.ok) {
+        showError(payload.error || "No se pudo crear el producto");
+        return;
+      }
+
+      addProductForm.reset();
+    } catch (error) {
+      showError("Error de red al crear producto");
+    }
   });
 }
 
