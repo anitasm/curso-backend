@@ -88,3 +88,16 @@ document.addEventListener("click", async (event) => {
     button.disabled = false;
   }
 });
+
+const initializeProductsFilters = () => {
+  const filtersForm = document.querySelector(".filters-form");
+  const queryInput = filtersForm?.querySelector("[data-filters-query-input]");
+
+  if (!filtersForm || !queryInput) return;
+
+  filtersForm.addEventListener("submit", () => {
+    queryInput.value = queryInput.value.trim().toLowerCase();
+  });
+};
+
+initializeProductsFilters();
