@@ -1,5 +1,5 @@
 {
-  "name": "entrega-1",
+  "name": "curso-backend-entrega-final",
   "version": "1.0.0",
   "main": "src/app.js",
   "scripts": {
@@ -9,12 +9,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Backend ecommerce con Express, Handlebars, Socket.io, Multer y MongoDB Atlas",
   "dependencies": {
     "dotenv": "^17.3.1",
     "express": "^4.22.1",
     "express-handlebars": "^8.0.3",
-    "mongodb": "^7.1.0",
     "mongoose": "^9.3.1",
     "mongoose-paginate-v2": "^1.9.1",
     "morgan": "^1.10.1",

@@ -1,150 +1,89 @@
-const fs = require("fs/promises");
-const path = require("path");
+const Product = require("../models/Product");
+
+const normalizeProduct = (product) => {
+  if (!product) return null;
+
+  const source = typeof product.toObject === "function" ? product.toObject() : product;
+
+  return {
+    ...source,
+    id: String(source._id),
+  };
+};
 
 class ProductManager {
-  constructor(filePath) {
-    this.filePath = filePath;
-  }
+  async getProducts(options = {}) {
+    const {
+      limit = 10,
+      page = 1,
+      sort,
+      query,
+      paginate = true,
+    } = options;
 
-  async _readFile() {
-    try {
-      const data = await fs.readFile(this.filePath, "utf-8");
-      return JSON.parse(data);
-    } catch (error) {
-      if (error.code === "ENOENT") {
-        await fs.writeFile(this.filePath, JSON.stringify([], null, 2));
-        return [];
-      }
-      throw error;
-    }
-  }
+    const filter = {};
 
-  async _writeFile(data) {
-    await fs.writeFile(this.filePath, JSON.stringify(data, null, 2));
-  }
+    if (typeof query === "string" && query.trim()) {
+      const normalizedQuery = query.trim();
 
-  _getNextId(products) {
-    if (products.length === 0) return 1;
-    const maxId = products.reduce((max, p) => (p.id > max ? p.id : max), 0);
-    return maxId + 1;
-  }
-
-  _validateProductFields(product) {
-    const required = [
-      "title",
-      "description",
-      "code",
-      "price",
-      "status",
-      "stock",
-      "category",
-      "thumbnails"
-    ];
-
-    for (const field of required) {
-      if (product[field] === undefined || product[field] === null) {
-        return { ok: false, message: `Falta campo obligatorio: ${field}` };
-      }
-      if (typeof product[field] === "string" && product[field].trim() === "") {
-        return { ok: false, message: `El campo ${field} no puede ser vacío` };
+      if (normalizedQuery === "true" || normalizedQuery === "false") {
+        filter.status = normalizedQuery === "true";
+      } else {
+        filter.category = { $regex: new RegExp(`^${normalizedQuery}$`, "i") };
       }
     }
 
-    if (typeof product.price !== "number" || !Number.isFinite(product.price)) {
-      return { ok: false, message: "price debe ser Number válido" };
+    const sortOption = sort === "asc" || sort === "desc" ? { price: sort === "asc" ? 1 : -1 } : undefined;
+
+    if (!paginate) {
+      const products = await Product.find(filter).sort(sortOption || { createdAt: -1 }).lean();
+      return products.map(normalizeProduct);
     }
 
-    if (!Number.isInteger(product.stock) || product.stock < 0) {
-      return { ok: false, message: "stock debe ser entero >= 0" };
-    }
+    const result = await Product.paginate(filter, {
+      page: Number(page) || 1,
+      limit: Number(limit) || 10,
+      sort: sortOption,
+      lean: true,
+      leanWithId: false,
+    });
 
-    if (typeof product.status !== "boolean") {
-      return { ok: false, message: "status debe ser Boolean" };
-    }
-
-    if (!Array.isArray(product.thumbnails)) {
-      return { ok: false, message: "thumbnails debe ser un Array de Strings" };
-    }
-
-    const allStrings = product.thumbnails.every((t) => typeof t === "string");
-    if (!allStrings) {
-      return { ok: false, message: "thumbnails debe contener solo strings" };
-    }
-
-    return { ok: true };
-  }
-
-  async getProducts() {
-    return await this._readFile();
+    return {
+      ...result,
+      docs: result.docs.map(normalizeProduct),
+    };
   }
 
   async getProductById(id) {
-    const products = await this._readFile();
-    const pid = Number(id);
-    return products.find((p) => p.id === pid) || null;
+    const product = await Product.findById(id).lean();
+    return normalizeProduct(product);
+  }
+
+  async createProduct(productData) {
+    const createdProduct = await Product.create(productData);
+    return normalizeProduct(createdProduct);
   }
 
   async addProduct(productData) {
-    const products = await this._readFile();
-
-    // Validar campos obligatorios
-    const validation = this._validateProductFields(productData);
-    if (!validation.ok) {
-      return { ok: false, message: validation.message };
-    }
-
-    // Validar code único
-    const codeExists = products.some((p) => p.code === productData.code);
-    if (codeExists) {
-      return { ok: false, message: `El code "${productData.code}" ya existe` };
-    }
-
-    const newProduct = {
-      id: this._getNextId(products), // autogenerado
-      ...productData,
-    };
-
-    products.push(newProduct);
-    await this._writeFile(products);
-
-    return { ok: true, product: newProduct };
+    return this.createProduct(productData);
   }
 
   async updateProduct(id, updates) {
-    const products = await this._readFile();
-    const pid = Number(id);
-
-    const index = products.findIndex((p) => p.id === pid);
-    if (index === -1) return { ok: false, message: "Producto no encontrado" };
-
-    if ("id" in updates) delete updates.id;
-
-    const updated = { ...products[index], ...updates };
-
-    if (updates.code && updates.code !== products[index].code) {
-      const codeExists = products.some((p) => p.code === updates.code);
-      if (codeExists) {
-        return { ok: false, message: `El code "${updates.code}" ya existe` };
-      }
+    if ("_id" in updates) {
+      delete updates._id;
     }
 
-    products[index] = updated;
-    await this._writeFile(products);
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    }).lean();
 
-    return { ok: true, product: updated };
+    return normalizeProduct(updatedProduct);
   }
 
   async deleteProduct(id) {
-    const products = await this._readFile();
-    const pid = Number(id);
-
-    const exists = products.some((p) => p.id === pid);
-    if (!exists) return { ok: false, message: "Producto no encontrado" };
-
-    const filtered = products.filter((p) => p.id !== pid);
-    await this._writeFile(filtered);
-
-    return { ok: true };
+    const deletedProduct = await Product.findByIdAndDelete(id).lean();
+    return normalizeProduct(deletedProduct);
   }
 }
 

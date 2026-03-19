@@ -1,34 +1,12 @@
 <section class="page-section">
   <div class="section-heading">
-    <h2>Productos destacados</h2>
-    <p>Listado general de productos disponibles.</p>
+    <h2>Bienvenida</h2>
+    <p>Este proyecto ahora utiliza MongoDB Atlas como persistencia principal.</p>
   </div>
 
-  {{#if products.length}}
-    <div class="products-grid">
-      {{#each products}}
-        <article class="product-card">
-          {{#if this.thumbnails.[0]}}
-            <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}" class="product-image" />
-          {{else}}
-            <div class="product-image placeholder-image">Sin imagen</div>
-          {{/if}}
-
-          <div class="product-content">
-            <h3>{{this.title}}</h3>
-            <p class="description">{{this.description}}</p>
-            <p class="price">${{this.price}}</p>
-            <div class="meta-row">
-              <span>Stock: {{this.stock}}</span>
-              <span>{{this.category}}</span>
-            </div>
-            <p class="tiny-meta">Code: {{this.code}} · ID: {{this.id}}</p>
-          </div>
-        </article>
-      {{/each}}
-    </div>
-  {{else}}
-    <div class="alert-message">No hay productos cargados.</div>
-  {{/if}}
+  <article class="panel-card">
+    <p>Visitá el <a href="/products" class="inline-link">catálogo de productos</a> para explorar la tienda.</p>
+  </article>
 </section>
+
 

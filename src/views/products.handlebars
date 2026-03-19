@@ -1,0 +1,93 @@
+<section class="page-section">
+  <div class="section-heading section-heading-inline">
+    <div>
+      <h2>Catálogo de productos</h2>
+      <p>Explorá la colección disponible con filtros, ordenamiento y acceso directo al carrito.</p>
+    </div>
+    <a href="/realtimeproducts" class="ghost-link">Administrar catálogo</a>
+  </div>
+
+  <article class="panel-card filters-card">
+    <form class="filters-form" method="GET" action="/products">
+      <label>
+        Buscar por categoría o estado
+        <input type="text" name="query" value="{{filters.query}}" placeholder="Ej: pulseras o true" />
+      </label>
+
+      <label>
+        Orden por precio
+        <select name="sort">
+          <option value="">Sin orden</option>
+          <option value="asc" {{filters.sortAscSelected}}>Menor a mayor</option>
+          <option value="desc" {{filters.sortDescSelected}}>Mayor a menor</option>
+        </select>
+      </label>
+
+      <label>
+        Productos por página
+        <input type="number" name="limit" min="1" value="{{filters.limit}}" />
+      </label>
+
+      <button type="submit" class="primary-btn compact-btn">Aplicar filtros</button>
+    </form>
+  </article>
+
+  <div id="storeAlert" class="alert-message hidden" role="alert"></div>
+
+  {{#if products.length}}
+    <div class="products-grid">
+      {{#each products}}
+        <article class="product-card">
+          {{#if this.mainThumbnail}}
+            <img src="{{this.mainThumbnail}}" alt="{{this.title}}" class="product-image" />
+          {{else}}
+            <div class="product-image placeholder-image">Sin imagen</div>
+          {{/if}}
+
+          <div class="product-content">
+            <h3>{{this.title}}</h3>
+            <p class="description">{{this.description}}</p>
+            <p class="price">${{this.price}}</p>
+            <div class="meta-row">
+              <span>{{this.category}}</span>
+              <span>{{this.displayStatus}}</span>
+            </div>
+            <p class="tiny-meta">Stock: {{this.stock}}</p>
+
+            <div class="card-actions">
+              <a href="/products/{{this.id}}" class="secondary-btn">Ver detalle</a>
+              <button
+                type="button"
+                class="primary-btn add-to-cart-btn"
+                data-product-id="{{this.id}}"
+                {{#unless this.isAvailable}}disabled{{/unless}}
+              >
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+        </article>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="alert-message">No se encontraron productos para los filtros indicados.</div>
+  {{/if}}
+
+  <nav class="pagination-bar" aria-label="Paginación">
+    {{#if pagination.hasPrevPage}}
+      <a href="{{pagination.prevLink}}" class="secondary-btn">Anterior</a>
+    {{else}}
+      <span class="secondary-btn disabled-link">Anterior</span>
+    {{/if}}
+
+    <span class="pagination-current">Página {{pagination.page}} de {{pagination.totalPages}}</span>
+
+    {{#if pagination.hasNextPage}}
+      <a href="{{pagination.nextLink}}" class="secondary-btn">Siguiente</a>
+    {{else}}
+      <span class="secondary-btn disabled-link">Siguiente</span>
+    {{/if}}
+  </nav>
+</section>
+
+<script src="/js/storefront.js"></script>

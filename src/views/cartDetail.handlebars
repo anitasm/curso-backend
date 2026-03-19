@@ -1,0 +1,42 @@
+<section class="page-section">
+  <div class="section-heading section-heading-inline">
+    <div>
+      <h2>Mi carrito</h2>
+      <p>Carrito activo: {{cart.id}}</p>
+    </div>
+    <a href="/products" class="ghost-link">Seguir comprando</a>
+  </div>
+
+  {{#if hasProducts}}
+    <div class="cart-grid">
+      {{#each cart.products}}
+        <article class="panel-card cart-item-card">
+          <div class="cart-item-media">
+            {{#if this.mainThumbnail}}
+              <img src="{{this.mainThumbnail}}" alt="{{this.product.title}}" class="cart-item-image" />
+            {{else}}
+              <div class="cart-item-image placeholder-image">Sin imagen</div>
+            {{/if}}
+          </div>
+
+          <div class="cart-item-content">
+            <h3>{{this.product.title}}</h3>
+            <p class="tiny-meta">{{this.product.category}}</p>
+            <div class="cart-item-meta">
+              <span>Precio unitario: ${{this.product.price}}</span>
+              <span>Cantidad: {{this.quantity}}</span>
+              <span>Subtotal: ${{this.subtotal}}</span>
+            </div>
+          </div>
+        </article>
+      {{/each}}
+    </div>
+
+    <article class="panel-card cart-summary-card">
+      <h3>Total general</h3>
+      <p class="cart-total">${{total}}</p>
+    </article>
+  {{else}}
+    <div class="alert-message">Este carrito todavía no tiene productos agregados.</div>
+  {{/if}}
+</section>

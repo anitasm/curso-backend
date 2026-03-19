@@ -1,14 +1,16 @@
 const express = require("express");
+const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
+const mongoose = require("mongoose");
+
 const ProductManager = require("../managers/ProductManager");
 
 const router = express.Router();
-
-const productsPath = path.join(__dirname, "../data/products.json");
-const fallbackProductManager = new ProductManager(productsPath);
-
+const productManager = new ProductManager();
 const uploadsDir = path.join(__dirname, "../public/img/uploads");
+
+fs.mkdirSync(uploadsDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -32,11 +34,12 @@ const upload = multer({
       cb(new Error("Solo se permiten archivos de imagen"));
       return;
     }
+
     cb(null, true);
   },
 });
 
-const getProductManager = (req) => req.app.get("productManager") || fallbackProductManager;
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const normalizeThumbnails = (raw) => {
   if (!raw) return [];
@@ -56,95 +59,174 @@ const parseBody = (body) => ({
   description: String(body.description || "").trim(),
   code: String(body.code || "").trim(),
   price: Number(body.price),
-  status: body.status === true || String(body.status).toLowerCase() === "true",
+  status: body.status === undefined ? true : body.status === true || String(body.status).toLowerCase() === "true",
   stock: Number(body.stock),
   category: String(body.category || "").trim(),
 });
 
+const buildPaginationLink = (req, page) => {
+  const params = new URLSearchParams(req.query);
+  params.set("page", page);
+  return `${req.baseUrl}?${params.toString()}`;
+};
+
 router.get("/", async (req, res) => {
   try {
-    const products = await getProductManager(req).getProducts();
-    res.json(products);
+    const { limit = 10, page = 1, sort, query } = req.query;
+
+    const result = await productManager.getProducts({
+      limit: Number(limit) || 10,
+      page: Number(page) || 1,
+      sort,
+      query,
+    });
+
+    res.json({
+      status: "success",
+      payload: result.docs,
+      totalPages: result.totalPages,
+      prevPage: result.prevPage,
+      nextPage: result.nextPage,
+      page: result.page,
+      hasPrevPage: result.hasPrevPage,
+      hasNextPage: result.hasNextPage,
+      prevLink: result.hasPrevPage ? buildPaginationLink(req, result.prevPage) : null,
+      nextLink: result.hasNextPage ? buildPaginationLink(req, result.nextPage) : null,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Error leyendo productos" });
+    res.status(500).json({
+      status: "error",
+      payload: null,
+      totalPages: 0,
+      prevPage: null,
+      nextPage: null,
+      page: Number(req.query.page) || 1,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevLink: null,
+      nextLink: null,
+    });
   }
 });
 
 router.get("/:pid", async (req, res) => {
   try {
-    const product = await getProductManager(req).getProductById(req.params.pid);
-    if (!product) return res.status(404).json({ error: "Producto no encontrado" });
-    res.json(product);
+    if (!isValidObjectId(req.params.pid)) {
+      return res.status(400).json({ status: "error", message: "ID de producto inválido" });
+    }
+
+    const product = await productManager.getProductById(req.params.pid);
+
+    if (!product) {
+      return res.status(404).json({ status: "error", message: "Producto no encontrado" });
+    }
+
+    res.json({ status: "success", payload: product });
   } catch (error) {
-    res.status(500).json({ error: "Error buscando producto" });
+    res.status(500).json({ status: "error", message: "Error buscando producto" });
   }
 });
 
 router.post("/", (req, res, next) => {
-  const isMultipart = req.is("multipart/form-data");
-  if (!isMultipart) {
+  if (!req.is("multipart/form-data")) {
     next();
     return;
   }
 
   upload.single("image")(req, res, (error) => {
     if (error) {
-      const status = error instanceof multer.MulterError ? 400 : 400;
-      res.status(status).json({ error: error.message || "Error subiendo imagen" });
+      res.status(400).json({ status: "error", message: error.message || "Error subiendo imagen" });
       return;
     }
+
     next();
   });
 });
 
 router.post("/", async (req, res) => {
   try {
-    const productManager = getProductManager(req);
     const productData = parseBody(req.body);
-
     const thumbnails = normalizeThumbnails(req.body.thumbnails);
+
     if (req.file) {
       thumbnails.push(`/img/uploads/${req.file.filename}`);
     }
 
     productData.thumbnails = thumbnails;
 
-    const result = await productManager.addProduct(productData);
-    if (!result.ok) return res.status(400).json({ error: result.message });
-
+    const product = await productManager.createProduct(productData);
     const io = req.app.get("io");
-    const products = await productManager.getProducts();
-    if (io) io.emit("productsUpdated", products);
 
-    res.status(201).json(result.product);
+    if (io) {
+      const products = await productManager.getProducts({ paginate: false, sort: "desc" });
+      io.emit("productsUpdated", products);
+    }
+
+    res.status(201).json({ status: "success", payload: product });
   } catch (error) {
-    res.status(500).json({ error: "Error creando producto" });
+    const isValidationError = error.name === "ValidationError" || error.code === 11000;
+    res.status(isValidationError ? 400 : 500).json({
+      status: "error",
+      message: error.code === 11000 ? "El código del producto ya existe" : error.message || "Error creando producto",
+    });
   }
 });
 
 router.put("/:pid", async (req, res) => {
   try {
-    const result = await getProductManager(req).updateProduct(req.params.pid, req.body);
-    if (!result.ok) return res.status(404).json({ error: result.message });
-    res.json(result.product);
+    if (!isValidObjectId(req.params.pid)) {
+      return res.status(400).json({ status: "error", message: "ID de producto inválido" });
+    }
+
+    const updates = { ...req.body };
+    delete updates._id;
+
+    if (updates.price !== undefined) updates.price = Number(updates.price);
+    if (updates.stock !== undefined) updates.stock = Number(updates.stock);
+    if (updates.status !== undefined) {
+      updates.status = updates.status === true || String(updates.status).toLowerCase() === "true";
+    }
+    if (updates.thumbnails !== undefined) {
+      updates.thumbnails = normalizeThumbnails(updates.thumbnails);
+    }
+
+    const product = await productManager.updateProduct(req.params.pid, updates);
+
+    if (!product) {
+      return res.status(404).json({ status: "error", message: "Producto no encontrado" });
+    }
+
+    res.json({ status: "success", payload: product });
   } catch (error) {
-    res.status(500).json({ error: "Error actualizando producto" });
+    const isValidationError = error.name === "ValidationError" || error.code === 11000;
+    res.status(isValidationError ? 400 : 500).json({
+      status: "error",
+      message: error.code === 11000 ? "El código del producto ya existe" : error.message || "Error actualizando producto",
+    });
   }
 });
 
 router.delete("/:pid", async (req, res) => {
   try {
-    const productManager = getProductManager(req);
-    const result = await productManager.deleteProduct(req.params.pid);
-    if (!result.ok) return res.status(404).json({ error: result.message });
+    if (!isValidObjectId(req.params.pid)) {
+      return res.status(400).json({ status: "error", message: "ID de producto inválido" });
+    }
+
+    const deletedProduct = await productManager.deleteProduct(req.params.pid);
+
+    if (!deletedProduct) {
+      return res.status(404).json({ status: "error", message: "Producto no encontrado" });
+    }
 
     const io = req.app.get("io");
-    const products = await productManager.getProducts();
-    if (io) io.emit("productsUpdated", products);
+    if (io) {
+      const products = await productManager.getProducts({ paginate: false, sort: "desc" });
+      io.emit("productsUpdated", products);
+    }
 
-    res.json({ message: "Producto eliminado" });
+    res.json({ status: "success", payload: deletedProduct });
   } catch (error) {
-    res.status(500).json({ error: "Error eliminando producto" });
+    res.status(500).json({ status: "error", message: "Error eliminando producto" });
   }
 });
 

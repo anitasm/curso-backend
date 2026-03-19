@@ -1,0 +1,42 @@
+<section class="page-section">
+  <a href="/products" class="ghost-link">← Volver al catálogo</a>
+
+  <article class="panel-card detail-card">
+    <div class="detail-media">
+      {{#if product.mainThumbnail}}
+        <img src="{{product.mainThumbnail}}" alt="{{product.title}}" class="detail-image" />
+      {{else}}
+        <div class="detail-image placeholder-image">Sin imagen</div>
+      {{/if}}
+    </div>
+
+    <div class="detail-content">
+      <p class="detail-category">{{product.category}}</p>
+      <h2>{{product.title}}</h2>
+      <p class="detail-description">{{product.description}}</p>
+      <p class="price detail-price">${{product.price}}</p>
+
+      <div class="detail-meta">
+        <span>Estado: {{product.displayStatus}}</span>
+        <span>Stock disponible: {{product.stock}}</span>
+        <span>Código: {{product.code}}</span>
+      </div>
+
+      <div id="storeAlert" class="alert-message hidden" role="alert"></div>
+
+      <div class="card-actions detail-actions">
+        <button
+          type="button"
+          class="primary-btn add-to-cart-btn"
+          data-product-id="{{product.id}}"
+          {{#unless product.isAvailable}}disabled{{/unless}}
+        >
+          Agregar al carrito
+        </button>
+        <a href="/products" class="secondary-btn">Seguir comprando</a>
+      </div>
+    </div>
+  </article>
+</section>
+
+<script src="/js/storefront.js"></script>

@@ -1,78 +1,109 @@
+const Cart = require("../models/Cart");
 
-const fs = require("fs/promises");
+const normalizeCart = (cart) => {
+  if (!cart) return null;
+
+  const source = typeof cart.toObject === "function" ? cart.toObject() : cart;
+
+  return {
+    ...source,
+    id: String(source._id),
+  };
+};
 
 class CartManager {
-  constructor(filePath) {
-    this.filePath = filePath;
-  }
-
-  async _readFile() {
-    try {
-      const data = await fs.readFile(this.filePath, "utf-8");
-      return JSON.parse(data);
-    } catch (error) {
-      if (error.code === "ENOENT") {
-        await fs.writeFile(this.filePath, JSON.stringify([], null, 2));
-        return [];
-      }
-      throw error;
-    }
-  }
-
-  async _writeFile(data) {
-    await fs.writeFile(this.filePath, JSON.stringify(data, null, 2));
-  }
-
-  _getNextId(carts) {
-    if (carts.length === 0) return 1;
-    const maxId = carts.reduce((max, c) => (c.id > max ? c.id : max), 0);
-    return maxId + 1;
-  }
-
   async createCart() {
-    const carts = await this._readFile();
-
-    const newCart = {
-      id: this._getNextId(carts),
-      products: [], 
-    };
-
-    carts.push(newCart);
-    await this._writeFile(carts);
-
-    return newCart;
+    const cart = await Cart.create({ products: [] });
+    return normalizeCart(cart);
   }
 
   async getCartById(id) {
-    const carts = await this._readFile();
-    const cid = Number(id);
-    return carts.find((c) => c.id === cid) || null;
+    const cart = await Cart.findById(id).populate("products.product").lean();
+    return normalizeCart(cart);
   }
 
-  async addProductToCart(cid, pid) {
-    const carts = await this._readFile();
-    const cartId = Number(cid);
-    const productId = Number(pid);
+  async addProductToCart(cartId, productId) {
+    const cart = await Cart.findById(cartId);
 
-    const cartIndex = carts.findIndex((c) => c.id === cartId);
-    if (cartIndex === -1) return { ok: false, message: "Carrito no encontrado" };
-
-    
-    // products: [{ product: <id>, quantity: <n> }]
-    const cart = carts[cartIndex];
-
-    const existingIndex = cart.products.findIndex((p) => p.product === productId);
-
-    if (existingIndex === -1) {
-      cart.products.push({ product: productId, quantity: 1 });
-    } else {
-      cart.products[existingIndex].quantity += 1;
+    if (!cart) {
+      return null;
     }
 
-    carts[cartIndex] = cart;
-    await this._writeFile(carts);
+    const productIndex = cart.products.findIndex(
+      (item) => String(item.product) === String(productId)
+    );
 
-    return { ok: true, cart };
+    if (productIndex === -1) {
+      cart.products.push({ product: productId, quantity: 1 });
+    } else {
+      cart.products[productIndex].quantity += 1;
+    }
+
+    await cart.save();
+    return this.getCartById(cartId);
+  }
+
+  async removeProductFromCart(cartId, productId) {
+    const cart = await Cart.findById(cartId);
+
+    if (!cart) {
+      return null;
+    }
+
+    cart.products = cart.products.filter(
+      (item) => String(item.product) !== String(productId)
+    );
+
+    await cart.save();
+    return this.getCartById(cartId);
+  }
+
+  async updateCartProducts(cartId, products) {
+    const cart = await Cart.findByIdAndUpdate(
+      cartId,
+      { products },
+      { new: true, runValidators: true }
+    );
+
+    if (!cart) {
+      return null;
+    }
+
+    return this.getCartById(cartId);
+  }
+
+  async updateProductQuantityInCart(cartId, productId, quantity) {
+    const cart = await Cart.findById(cartId);
+
+    if (!cart) {
+      return null;
+    }
+
+    const productIndex = cart.products.findIndex(
+      (item) => String(item.product) === String(productId)
+    );
+
+    if (productIndex === -1) {
+      return false;
+    }
+
+    cart.products[productIndex].quantity = quantity;
+    await cart.save();
+    return this.getCartById(cartId);
+  }
+
+  async clearCart(cartId) {
+    const cart = await Cart.findByIdAndUpdate(
+      cartId,
+      { products: [] },
+      { new: true }
+    );
+
+    if (!cart) {
+      return null;
+    }
+
+    return this.getCartById(cartId);
   }
 }
 
