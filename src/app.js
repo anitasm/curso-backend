@@ -43,32 +43,6 @@ io.on("connection", async (socket) => {
   } catch (_error) {
     socket.emit("errorMessage", "No se pudo cargar la lista de productos");
   }
-
-  socket.on("addProduct", async (payload) => {
-    try {
-      await productManager.createProduct(payload);
-      const products = await productManager.getProducts({ paginate: false, sort: "desc" });
-      io.emit("productsUpdated", products);
-    } catch (error) {
-      socket.emit("errorMessage", error.message || "Error al agregar producto");
-    }
-  });
-
-  socket.on("deleteProduct", async (pid) => {
-    try {
-      const deletedProduct = await productManager.deleteProduct(pid);
-
-      if (!deletedProduct) {
-        socket.emit("errorMessage", "Producto no encontrado");
-        return;
-      }
-
-      const products = await productManager.getProducts({ paginate: false, sort: "desc" });
-      io.emit("productsUpdated", products);
-    } catch (_error) {
-      socket.emit("errorMessage", "Error al eliminar producto");
-    }
-  });
 });
 
 const startServer = async () => {

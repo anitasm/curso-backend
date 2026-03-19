@@ -11,6 +11,21 @@ const normalizeProduct = (product) => {
   };
 };
 
+const sanitizeCodeSegment = (value) => String(value || "")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toUpperCase()
+  .replace(/[^A-Z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "")
+  .slice(0, 8);
+
+const buildCodeBase = ({ category, title }) => {
+  const categorySegment = sanitizeCodeSegment(category).split("-")[0] || "ACC";
+  const titleSegment = sanitizeCodeSegment(title).split("-")[0] || "ITEM";
+
+  return `${categorySegment}-${titleSegment}`;
+};
+
 class ProductManager {
   async getProducts(options = {}) {
     const {
@@ -59,18 +74,51 @@ class ProductManager {
     return normalizeProduct(product);
   }
 
-  async createProduct(productData) {
-    const createdProduct = await Product.create(productData);
-    return normalizeProduct(createdProduct);
+  async generateUniqueCode(productData) {
+    const baseCode = buildCodeBase(productData);
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const suffix = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 4)}`
+        .toUpperCase()
+        .slice(-8);
+      const code = `${baseCode}-${suffix}`;
+      const existingProduct = await Product.exists({ code });
+
+      if (!existingProduct) {
+        return code;
+      }
+    }
+
+    throw new Error("No se pudo generar un código único para el producto");
   }
 
-  async addProduct(productData) {
-    return this.createProduct(productData);
+  async createProduct(productData) {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      try {
+        const payload = {
+          ...productData,
+          code: await this.generateUniqueCode(productData),
+        };
+
+        const createdProduct = await Product.create(payload);
+        return normalizeProduct(createdProduct);
+      } catch (error) {
+        if (error.code !== 11000 || attempt === 4) {
+          throw error;
+        }
+      }
+    }
+
+    throw new Error("No se pudo crear el producto");
   }
 
   async updateProduct(id, updates) {
     if ("_id" in updates) {
       delete updates._id;
+    }
+
+    if ("code" in updates) {
+      delete updates.code;
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updates, {

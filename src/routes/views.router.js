@@ -125,7 +125,7 @@ router.get("/carts/:cid", async (req, res) => {
 router.get("/realtimeproducts", async (_req, res) => {
   try {
     const products = await productManager.getProducts({ paginate: false, sort: "desc" });
-    res.render("realTimeProducts", { title: "Real Time Products", products });
+    res.render("realTimeProducts", { title: "Gestión de catálogo", products });
   } catch (error) {
     res.status(500).send("Error renderizando vista en tiempo real");
   }

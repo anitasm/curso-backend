@@ -57,7 +57,6 @@ const normalizeThumbnails = (raw) => {
 const parseBody = (body) => ({
   title: String(body.title || "").trim(),
   description: String(body.description || "").trim(),
-  code: String(body.code || "").trim(),
   price: Number(body.price),
   status: body.status === undefined ? true : body.status === true || String(body.status).toLowerCase() === "true",
   stock: Number(body.stock),

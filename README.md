@@ -128,3 +128,91 @@ Servidor: `http://localhost:8080`
 - Si modificás productos por HTTP en `/api/products` (POST/DELETE), también se emite actualización por websocket.
 - Al recargar `/`, se ven los cambios porque lee siempre desde `products.json`.
 
+# Proyecto final - Rina Accesorios
+
+Aplicación backend para una tienda de accesorios y pulseras construida con **Node.js, Express, Handlebars, Socket.io, Mongoose y MongoDB Atlas**. Incluye catálogo con paginación, detalle de producto, carrito y un panel administrativo en tiempo real para altas y bajas de productos.
+
+## Tecnologías
+- Node.js
+- Express
+- Handlebars
+- Socket.io
+- Mongoose
+- MongoDB Atlas
+- Multer
+
+## Instalación
+1. Cloná el repositorio.
+2. Instalá dependencias:
+
+```bash
+npm install
+```
+
+## Variables de entorno
+Creá un archivo `.env` en la raíz del proyecto con las siguientes variables:
+
+```env
+PORT=8080
+MONGO_URI=mongodb+srv://usuario:password@cluster.mongodb.net/rina?retryWrites=true&w=majority
+```
+
+### Conexión con MongoDB Atlas
+- Creá un cluster en MongoDB Atlas.
+- Configurá un usuario de base de datos con permisos de lectura y escritura.
+- Agregá tu IP a la lista de acceso de red o habilitá temporalmente el acceso necesario para pruebas.
+- Copiá la cadena de conexión SRV desde Atlas y pegala en `MONGO_URI`.
+- Al iniciar la app, la conexión se realiza con Mongoose usando esa variable de entorno.
+
+## Ejecución
+Modo desarrollo:
+
+```bash
+npm run dev
+```
+
+Modo normal:
+
+```bash
+npm start
+```
+
+Servidor por defecto: `http://localhost:8080`
+
+## Funcionalidades principales
+- Catálogo de productos con paginación, filtros y orden por precio.
+- Detalle individual de producto.
+- Carritos persistidos en MongoDB.
+- Panel de catálogo en tiempo real con creación y eliminación de productos.
+- Carga opcional de imagen principal mediante formulario multipart.
+- Generación automática del campo `code` en backend para cada producto nuevo.
+
+## Rutas API
+### Productos
+- `GET /api/products`
+- `GET /api/products/:pid`
+- `POST /api/products`
+- `PUT /api/products/:pid`
+- `DELETE /api/products/:pid`
+
+### Carritos
+- `POST /api/carts`
+- `GET /api/carts/:cid`
+- `POST /api/carts/:cid/product/:pid`
+
+## Rutas de vistas
+- `/products`
+- `/products/:pid`
+- `/carts/:cid`
+- `/realtimeproducts`
+
+## Ejemplos de query params
+```bash
+/api/products?limit=5&page=1&sort=asc&query=pulseras
+/api/products?query=true
+```
+
+## Notas para la entrega
+- El identificador principal del producto es `_id`, generado por MongoDB.
+- El campo `code` se genera automáticamente en backend con un formato legible y único.
+- La vista `/realtimeproducts` está orientada a la gestión administrativa del catálogo y actualiza el listado en vivo con Socket.io.

@@ -1,7 +1,7 @@
 <section class="page-section realtime-page">
   <div class="section-heading">
-    <h2>Gestión en tiempo real</h2>
-    <p>Alta y baja de productos con actualización automática.</p>
+    <h2>Gestión de catálogo</h2>
+    <p>Administrá el catálogo de accesorios con altas y bajas en vivo.</p>
   </div>
 
   <div id="errorBox" class="alert-message hidden" role="alert"></div>
@@ -14,11 +14,6 @@
           <label>
             Título
             <input name="title" placeholder="Ej: Pulsera Aura" required>
-          </label>
-
-          <label>
-            Code
-            <input name="code" placeholder="Ej: AURA-001" required>
           </label>
 
           <label class="full-width">
@@ -65,7 +60,7 @@
     </article>
 
     <article class="panel-card">
-      <h3>Listado en tiempo real</h3>
+      <h3>Catálogo en vivo</h3>
       <div id="productsList" class="products-grid realtime-grid">
         {{#if products.length}}
           {{#each products}}
@@ -83,7 +78,7 @@
                   <span>Stock: {{this.stock}}</span>
                   <span>{{this.category}}</span>
                 </div>
-                <p class="tiny-meta">Code: {{this.code}} · ID: {{this.id}}</p>
+                <p class="tiny-meta">Ref. {{this.code}}</p>
                 <button type="button" class="delete-btn" data-id="{{this.id}}">Eliminar</button>
               </div>
             </article>

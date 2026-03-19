@@ -32,7 +32,7 @@ const renderCard = (product) => {
           <span>Stock: ${product.stock}</span>
           <span>${product.category}</span>
         </div>
-        <p class="tiny-meta">Code: ${product.code} · ID: ${product.id}</p>
+        <p class="tiny-meta">Ref. ${product.code}</p>
         <button type="button" class="delete-btn" data-id="${product.id}">Eliminar</button>
       </div>
     </article>
@@ -73,12 +73,12 @@ if (addProductForm) {
       const payload = await response.json();
 
       if (!response.ok) {
-        showError(payload.error || "No se pudo crear el producto");
+        showError(payload.message || payload.error || "No se pudo crear el producto");
         return;
       }
 
       addProductForm.reset();
-    } catch (error) {
+    } catch (_error) {
       showError("Error de red al crear producto");
     }
   });
@@ -95,9 +95,9 @@ if (productsList) {
       const response = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (!response.ok) {
         const payload = await response.json();
-        showError(payload.error || "No se pudo eliminar el producto");
+        showError(payload.message || payload.error || "No se pudo eliminar el producto");
       }
-    } catch (error) {
+    } catch (_error) {
       showError("Error de red al eliminar producto");
     }
   });
