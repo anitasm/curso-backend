@@ -1,3 +1,7 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
+const mongoose = require("mongoose");
 const express = require("express");
 const path = require("path");
 const http = require("http");
@@ -74,3 +78,7 @@ io.on("connection", async (socket) => {
 httpServer.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB conectado"))
+  .catch(err => console.log("Error Mongo:", err));
