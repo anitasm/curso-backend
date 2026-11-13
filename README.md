@@ -1,218 +1,81 @@
-# Entrega N°1 - Backend de Productos y Carritos
+# ShipNow | Catálogo y gestión de perfiles
 
-Autora: Ana Sol Mendoza
-Proyecto backend básico en Node.js + Express para gestionar productos y carritos con persistencia en archivos JSON.
+Proyecto de backend para emprendimientos de accesorios, desarrollado como preentrega del **módulo 1 de Backend III**. Integra una API REST y una interfaz web, con **Rina** como tienda de ejemplo.
 
-## 📌 Objetivo
-Exponer una API REST con endpoints para crear, listar, actualizar y eliminar productos, además de manejar carritos y sus productos.
+ShipNow propone una base para futuras funcionalidades logísticas. Esta etapa se concentra en productos, carritos y perfiles de usuario; no incluye envíos reales.
 
-## ✅ Requisitos cumplidos
-- Servidor Express escuchando en **puerto 8080**.
-- Rutas `/api/products` y `/api/carts`.
-- Persistencia con archivos JSON.
-- IDs autogenerados y validaciones básicas.
+## Funcionalidades
 
-## 🚀 Stack
-- **Node.js** (runtime)
-- **Express 5** (framework web)
-- **fs/promises** (persistencia en archivos JSON)
-- **nodemon** (modo desarrollo)
-
-## 📂 Estructura del proyecto
-```
-src/
-  app.js
-  routes/
-    products.router.js
-    carts.router.js
-  managers/
-    ProductManager.js
-    CartManager.js
-  data/
-    products.json
-    carts.json
-```
-
-## ▶️ Cómo ejecutar
-```bash
-npm install
-npm run dev
-```
-Servidor en: `http://localhost:8080`
-
-## 🔌 Endpoints principales
-
-### Productos `/api/products`
-| Método | Ruta | Descripción |
-| ------ | ---- | ----------- |
-| GET | `/` | Listar todos los productos |
-| GET | `/:pid` | Obtener producto por ID |
-| POST | `/` | Crear producto |
-| PUT | `/:pid` | Actualizar producto |
-| DELETE | `/:pid` | Eliminar producto |
-
-**Body POST/PUT (ejemplo):**
-```json
-{
-  "title": "Camiseta",
-  "description": "Camiseta negra",
-  "code": "CAMI-001",
-  "price": 12000,
-  "status": true,
-  "stock": 15,
-  "category": "Ropa",
-  "thumbnails": ["img/camiseta.png"]
-}
-```
-# Entrega N°2 - Backend + Handlebars + Socket.io
-
-Autora: Ana Sol Mendoza  
-Proyecto Node.js + Express con API REST de productos y carritos, persistencia en JSON y vistas dinámicas.
-
-## ✅ Qué incluye
-- API REST existente sin romper compatibilidad:
-  - `/api/products`
-  - `/api/carts`
-- Motor de plantillas **Handlebars**.
-- Actualización en tiempo real con **Socket.io**.
-- Vistas:
-  - `/` → `home.handlebars` (solo lectura)
-  - `/realtimeproducts` → `realTimeProducts.handlebars` (alta/baja en tiempo real)
-
-## 📂 Estructura principal
-```
-src/
-  app.js
-  routes/
-    products.router.js
-    carts.router.js
-    views.router.js
-  managers/
-    ProductManager.js
-    CartManager.js
-  views/
-    layouts/
-      main.handlebars
-    home.handlebars
-    realTimeProducts.handlebars
-  public/
-    js/
-      realtime.js
-    css/
-      styles.css
-  data/
-    products.json
-    carts.json
-```
-
-## ▶️ Cómo correr
-```bash
-npm install
-npm run dev
-```
-O en modo producción:
-```bash
-npm start
-```
-
-Servidor: `http://localhost:8080`
-
-## 🧪 Rutas para probar
-- Home SSR: `GET /`
-- Real time products: `GET /realtimeproducts`
-- API productos: `GET /api/products`, `POST /api/products`, `DELETE /api/products/:pid`
-- API carritos: `POST /api/carts`, `GET /api/carts/:cid`, `POST /api/carts/:cid/product/:pid`
-
-## 🔁 Comportamiento esperado
-- Si agregás/eliminás productos desde `/realtimeproducts`, la lista se actualiza en vivo.
-- Si modificás productos por HTTP en `/api/products` (POST/DELETE), también se emite actualización por websocket.
-- Al recargar `/`, se ven los cambios porque lee siempre desde `products.json`.
-
-# Proyecto final - Rina Accesorios
-
-Aplicación backend para una tienda de accesorios y pulseras construida con **Node.js, Express, Handlebars, Socket.io, Mongoose y MongoDB Atlas**. Incluye catálogo con paginación, detalle de producto, carrito y un panel administrativo en tiempo real para altas y bajas de productos.
+- **Productos:** creación, consulta, edición y eliminación, con filtros, paginación e imágenes.
+- **Catálogo en tiempo real:** actualización de la interfaz mediante Socket.io.
+- **Carritos:** gestión de productos y cantidades, con cálculo de subtotales y total.
+- **Usuarios:** gestión de perfiles, validación de email y control de duplicados.
 
 ## Tecnologías
-- Node.js
-- Express
-- Handlebars
-- Socket.io
-- Mongoose
-- MongoDB Atlas
-- Multer
 
-## Instalación
-1. Cloná el repositorio.
-2. Instalá dependencias:
+Node.js, Express, MongoDB, Mongoose, Handlebars, Socket.io y Multer. El proyecto utiliza CommonJS y pruebas nativas de Node.js.
 
-```bash
-npm install
+## Arquitectura
+
+```text
+Router → Controller → Service → Repository → Model / MongoDB
 ```
 
-## Variables de entorno
-Creá un archivo `.env` en la raíz del proyecto con las siguientes variables:
+Los controllers gestionan las peticiones HTTP; los servicios validan y aplican reglas del negocio; los repositorios concentran el acceso a datos; los modelos definen esquemas e índices.
 
-```env
-PORT=8080
-MONGO_URI=mongodb+srv://usuario:password@cluster.mongodb.net/rina?retryWrites=true&w=majority
+```text
+src/
+├── config/          # Configuración y conexión
+├── constants/       # Roles y estados
+├── controllers/     # Peticiones HTTP y vistas
+├── middlewares/     # Archivos y errores
+├── models/          # Product, Cart y User
+├── repositories/    # Persistencia
+├── routes/          # Rutas de la aplicación
+├── services/        # Reglas del negocio
+├── sockets/         # Eventos en tiempo real
+├── public/          # Estilos, scripts e imágenes
+├── views/           # Plantillas Handlebars
+├── app.js           # Creación de la aplicación
+└── server.js        # Conexión y arranque
+test/                # Pruebas automatizadas
 ```
 
-### Conexión con MongoDB Atlas
-- Creá un cluster en MongoDB Atlas.
-- Configurá un usuario de base de datos con permisos de lectura y escritura.
-- Agregá tu IP a la lista de acceso de red o habilitá temporalmente el acceso necesario para pruebas.
-- Copiá la cadena de conexión SRV desde Atlas y pegala en `MONGO_URI`.
-- Al iniciar la app, la conexión se realiza con Mongoose usando esa variable de entorno.
+## Cambios de esta entrega
+
+Se reorganizó la aplicación existente por capas, se incorporó el módulo Users y se adaptaron carritos, vistas y sockets para utilizar servicios. También se separó el arranque de la aplicación, se reforzaron las validaciones y se centralizó el manejo de errores.
+
+Se conserva la interfaz Rina y los contratos principales del catálogo y los carritos. La disponibilidad de los productos se calcula a partir de su estado y stock, sin duplicarla en la base de datos.
 
 ## Ejecución
-Modo desarrollo:
 
-```bash
-npm run dev
+Desde la carpeta del proyecto, con la conexión a MongoDB configurada:
+
+```powershell
+npm.cmd ci
+npm.cmd run dev
 ```
 
-Modo normal:
+Para iniciar sin reinicio automático: `npm.cmd start`.
 
-```bash
-npm start
+## Rutas principales
+
+| Ruta | Función |
+| --- | --- |
+| `/api/products` | API de productos |
+| `/api/users` | API de perfiles |
+| `/api/carts` | API de carritos |
+| `/products` | Catálogo y acceso al detalle de productos |
+| `/realtimeproducts` | Gestión del catálogo en tiempo real |
+| `/carts/:cid` | Vista de un carrito |
+
+## Pruebas y alcance
+
+```powershell
+npm.cmd test
 ```
 
-Servidor por defecto: `http://localhost:8080`
+La suite cuenta con **18 pruebas aprobadas** que cubren validaciones, endpoints, carritos, vistas, imágenes, sockets y arranque. Las pruebas automatizadas utilizan dependencias de prueba y no requieren Atlas.
 
-## Funcionalidades principales
-- Catálogo de productos con paginación, filtros y orden por precio.
-- Detalle individual de producto.
-- Carritos persistidos en MongoDB.
-- Panel de catálogo en tiempo real con creación y eliminación de productos.
-- Carga opcional de imagen principal mediante formulario multipart.
-- Generación automática del campo `code` en backend para cada producto nuevo.
 
-## Rutas API
-### Productos
-- `GET /api/products`
-- `GET /api/products/:pid`
-- `POST /api/products`
-- `PUT /api/products/:pid`
-- `DELETE /api/products/:pid`
-
-### Carritos
-- `POST /api/carts`
-- `GET /api/carts/:cid`
-- `POST /api/carts/:cid/product/:pid`
-
-## Rutas de vistas
-- `/products`
-- `/products/:pid`
-- `/carts/:cid`
-- `/realtimeproducts`
-
-## Ejemplos de query params
-```bash
-/api/products?limit=5&page=1&sort=asc&query=pulseras
-/api/products?query=true
-```
-
-## Notas para la entrega
-- El identificador principal del producto es `_id`, generado por MongoDB.
-- El campo `code` se genera automáticamente en backend con un formato legible y único.
-- La vista `/realtimeproducts` está orientada a la gestión administrativa del catálogo y actualiza el listado en vivo con Socket.io.
+Repositorio de origen: [anitasm/curso-backend](https://github.com/anitasm/curso-backend).

@@ -22,6 +22,8 @@ const productSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
+      min: 0,
+      validate: Number.isFinite,
     },
     status: {
       type: Boolean,
@@ -32,6 +34,7 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+      validate: Number.isSafeInteger,
     },
     category: {
       type: String,

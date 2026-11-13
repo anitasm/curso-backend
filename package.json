@@ -1,15 +1,16 @@
 {
   "name": "curso-backend-entrega-final",
   "version": "1.0.0",
-  "main": "src/app.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node --test test/*.test.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Backend ecommerce con Express, Handlebars, Socket.io, Multer y MongoDB Atlas",
+  "description": "ShipNow: catálogo y perfiles académicos; Rina como tienda de ejemplo",
   "dependencies": {
     "dotenv": "^17.3.1",
     "express": "^4.22.1",
