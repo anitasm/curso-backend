@@ -20,7 +20,7 @@
           </div>
 
           <div class="cart-item-content">
-            <h3>{{this.product.title}}</h3>
+            <h3>{{#if this.product}}{{this.product.title}}{{else}}Producto eliminado{{/if}}</h3>
             <p class="tiny-meta">{{this.product.category}}</p>
             <div class="cart-item-meta">
               <span>Precio unitario: ${{this.product.price}}</span>
